@@ -1,4 +1,4 @@
-# Launch-angle contribution — porting notes (from my Obsidian log)
+# Launch-angle contribution — porting notes
 
 > Translated from my personal notes (`SimulateurGolf/OpenFlightReflexion.md`), section
 > "Portage de la contribution launch angle" through the v_r(t) extraction tests.
