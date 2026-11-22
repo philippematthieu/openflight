@@ -64,3 +64,6 @@
 ![ball_official_capture_1.png](images/ball_official_capture_1.png)
 
 > Note: over 136 ms the ball only loses ~1.5 mph (decay barely visible at the end of the window) → the ψ fit on this window alone is weakly constrained; the long WAV captures (350 ms+) from my own project give a much better v_r(t) curvature.
+
+
+translated and reformulated by Mistral Vibe Code
