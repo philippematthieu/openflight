@@ -67,27 +67,27 @@
 
 ## Full equation chain: from I/Q to $\widehat{\psi}$
 
-$$s(t) = \bigl(I(t) - \overline{I}\bigr) + j\,\bigl(Q(t) - \overline{Q}\bigr) \tag{1}$$
+$$s(t) = \bigl(I(t) - \overline{I}\bigr) + j\,\bigl(Q(t) - \overline{Q}\bigr) \qquad (1)$$
 
-$$S(t_n, f) = \mathrm{FFT}\bigl[\,w(m)\,s(t_n+m)\,\bigr] \tag{2}$$
+$$S(t_n, f) = \mathrm{FFT}\bigl[\,w(m)\,s(t_n+m)\,\bigr] \qquad (2)$$
 
-$$f_D(t_n) = \arg\max_f \lvert S(t_n,f)\rvert \tag{3}$$
+$$f_D(t_n) = \arg\max_f \lvert S(t_n,f)\rvert \qquad (3)$$
 
-$$v_r(t_n) = f_D(t_n)\,\frac{c}{2 f_c} \tag{4}$$
+$$v_r(t_n) = f_D(t_n)\,\frac{c}{2 f_c} \qquad (4)$$
 
-$$t_n \ge t_{impact} \;\text{and}\; \lvert v_r(t_n) - v_{Ball}\rvert \le 3\ \text{mph} \tag{5}$$
+$$t_n \ge t_{impact} \;\text{and}\; \lvert v_r(t_n) - v_{Ball}\rvert \le 3\ \text{mph} \qquad (5)$$
 
-$$\widehat{v_r}(t;\widehat{\psi}) = \widehat{c}\,\widehat{V}(t;\widehat{\psi})\cos\widehat{\psi} \tag{6}$$
+$$\widehat{v_r}(t;\widehat{\psi}) = \widehat{c}\,\widehat{V}(t;\widehat{\psi})\cos\widehat{\psi} \qquad (6)$$
 
-$$\widehat{c} = \frac{\sum \widehat{v_r}\,v_r}{\sum \widehat{v_r}^{\,2}} \tag{7}$$
+$$\widehat{c} = \frac{\sum \widehat{v_r}\,v_r}{\sum \widehat{v_r}^{\,2}} \qquad (7)$$
 
-$$\mathrm{SSE}(\widehat{\psi}) = \sum_n \Bigl(v_r(t_n) - \widehat{v_r}(t_n;\widehat{\psi})\Bigr)^2 \tag{8}$$
+$$\mathrm{SSE}(\widehat{\psi}) = \sum_n \Bigl(v_r(t_n) - \widehat{v_r}(t_n;\widehat{\psi})\Bigr)^2 \qquad (8)$$
 
-$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \mathrm{SSE}(\widehat{\psi}), \qquad \mathrm{conf} = 1 - \frac{\mathrm{SSE}((\widehat{\psi})^{*})}{\mathrm{SST}} \tag{9}$$
+$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \mathrm{SSE}(\widehat{\psi}), \qquad \mathrm{conf} = 1 - \frac{\mathrm{SSE}((\widehat{\psi})^{*})}{\mathrm{SST}} \qquad (9)$$
 
 Expanded (without SSE), with $\widehat{c}$ replaced by its least-squares value (7):
 
-$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \widehat{V}(t_n;\widehat{\psi})\cos\widehat{\psi} \cdot \frac{\sum_m \widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\; v_r(t_m)}{\sum_m \bigl(\widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\bigr)^2} \Bigr)^2 \tag{10}$$
+$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \widehat{V}(t_n;\widehat{\psi})\cos\widehat{\psi} \cdot \frac{\sum_m \widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\; v_r(t_m)}{\sum_m \bigl(\widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\bigr)^2} \Bigr)^2 \qquad (10)$$
 
 > **(11)** In Python, the $\arg\min$ of (10) is computed with `numpy.argmin` over the vector of SSE values on the grid: `idx = np.argmin(sse_vector)` then `psi_hat = psi_grid[idx]` (see `src/openflight/launch_angle.py:estimate_launch_angle()`).
 
