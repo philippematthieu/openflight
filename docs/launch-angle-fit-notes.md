@@ -65,5 +65,60 @@
 
 > Note: over 136 ms the ball only loses ~1.5 mph (decay barely visible at the end of the window) → the ψ fit on this window alone is weakly constrained; the long WAV captures (350 ms+) from my own project give a much better v_r(t) curvature.
 
+## Full equation chain: from I/Q to $\widehat{\psi}$
+
+$$s(t) = \bigl(I(t) - \overline{I}\bigr) + j\,\bigl(Q(t) - \overline{Q}\bigr) \tag{1}$$
+
+$$S(t_n, f) = \mathrm{FFT}\bigl[\,w(m)\,s(t_n+m)\,\bigr] \tag{2}$$
+
+$$f_D(t_n) = \arg\max_f \lvert S(t_n,f)\rvert \tag{3}$$
+
+$$v_r(t_n) = f_D(t_n)\,\frac{c}{2 f_c} \tag{4}$$
+
+$$t_n \ge t_{impact} \;\text{and}\; \lvert v_r(t_n) - v_{Ball}\rvert \le 3\ \text{mph} \tag{5}$$
+
+$$\widehat{v_r}(t;\widehat{\psi}) = \widehat{c}\,\widehat{V}(t;\widehat{\psi})\cos\widehat{\psi} \tag{6}$$
+
+$$\widehat{c} = \frac{\sum \widehat{v_r}\,v_r}{\sum \widehat{v_r}^{\,2}} \tag{7}$$
+
+$$\mathrm{SSE}(\widehat{\psi}) = \sum_n \Bigl(v_r(t_n) - \widehat{v_r}(t_n;\widehat{\psi})\Bigr)^2 \tag{8}$$
+
+$$\widehat{\psi}^{*} = \arg\min_{\widehat{\psi}} \mathrm{SSE}(\widehat{\psi}), \qquad \mathrm{conf} = 1 - \frac{\mathrm{SSE}(\widehat{\psi}^{*})}{\mathrm{SST}} \tag{9}$$
+
+Expanded (without SSE), with $\widehat{c}$ replaced by its least-squares value (7):
+
+$$\widehat{\psi}^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \widehat{V}(t_n;\widehat{\psi})\cos\widehat{\psi} \cdot \frac{\sum_m \widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\; v_r(t_m)}{\sum_m \bigl(\widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\bigr)^2} \Bigr)^2 \tag{10}$$
+
+> **(11)** In Python, the $\arg\min$ of (10) is computed with `numpy.argmin` over the vector of SSE values on the grid: `idx = np.argmin(sse_vector)` then `psi_hat = psi_grid[idx]` (see `src/openflight/launch_angle.py:estimate_launch_angle()`).
+
+> **Why the lateral component is neglected in the $\widehat{\psi}$ fit**: the full relation is $v_r = V\cos(\psi-\varepsilon)\cos(\alpha)$. Over 136 ms the azimuthal drift stays $\alpha \approx 2{-}3°$, so $\cos(\alpha) \approx 0.999$ → error < 0.1 % on $v_r$, negligible for the targeted accuracy. Hence the 2D (vertical plane) fit is sufficient here.
+
+**Didactic plot — measured $v_r(t)$ (black) vs model curves $\widehat{v_r}(t;\widehat{\psi})$ for several $\widehat{\psi}$ (synthetic data, true $\psi=15°$, `scripts/analysis/plot_psi_fit.py`): the best fit is $\widehat{\psi}=15°$ (min SSE, green curve on the black measured curve):**
+
+![psi_fit_didactic.png](images/psi_fit_didactic.png)
+
+### Variable index
+
+| Symbol | Meaning |
+|---|---|
+| $I(t), Q(t)$ | raw 12-bit ADC counts, In-phase / Quadrature channels |
+| $\overline{I}, \overline{Q}$ | mean (DC offset) of each channel |
+| $s(t)$ | reconstructed complex signal $I + jQ$ |
+| $w(m)$ | Hann window, $N = 128$ samples |
+| $S(t_n, f)$ | STFT spectrum at time $t_n$ (spectrogram) |
+| $f_D$ | Doppler frequency shift |
+| $f_c$ | carrier frequency = 24.125 GHz |
+| $c$ | speed of light = 299 792 458 m/s |
+| $v_r(t)$ | **measured radial velocity** (projection on radar line of sight) |
+| $v_{Ball}$ | detected ball speed (mode-based, `process_capture`) |
+| $t_{impact}$ | impact time |
+| $\widehat{v_r}(t)$ | **model-predicted** radial velocity |
+| $\widehat{V}(t)$ | model-predicted true ball speed (2D flight model) |
+| $\widehat{\psi}$ | **estimated launch angle** (elevation) |
+| $\widehat{\psi}^{*}$ | retained estimate (argmin SSE) |
+| $\widehat{c}$ | scale fitted by least squares |
+| SSE | sum of squared errors |
+| SST | total sum of squares (variance of measurements) |
+| conf | fit confidence = 1 − SSE/SST |
 
 translated and reformulated by Mistral Vibe Code
