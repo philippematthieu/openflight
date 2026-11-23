@@ -83,11 +83,11 @@ $$\widehat{c} = \frac{\sum \widehat{v_r}\,v_r}{\sum \widehat{v_r}^{\,2}} \tag{7}
 
 $$\mathrm{SSE}(\widehat{\psi}) = \sum_n \Bigl(v_r(t_n) - \widehat{v_r}(t_n;\widehat{\psi})\Bigr)^2 \tag{8}$$
 
-$$\widehat{\psi}^{*} = \arg\min_{\widehat{\psi}} \mathrm{SSE}(\widehat{\psi}), \qquad \mathrm{conf} = 1 - \frac{\mathrm{SSE}(\widehat{\psi}^{*})}{\mathrm{SST}} \tag{9}$$
+$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \mathrm{SSE}(\widehat{\psi}), \qquad \mathrm{conf} = 1 - \frac{\mathrm{SSE}((\widehat{\psi})^{*})}{\mathrm{SST}} \tag{9}$$
 
 Expanded (without SSE), with $\widehat{c}$ replaced by its least-squares value (7):
 
-$$\widehat{\psi}^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \widehat{V}(t_n;\widehat{\psi})\cos\widehat{\psi} \cdot \frac{\sum_m \widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\; v_r(t_m)}{\sum_m \bigl(\widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\bigr)^2} \Bigr)^2 \tag{10}$$
+$$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \widehat{V}(t_n;\widehat{\psi})\cos\widehat{\psi} \cdot \frac{\sum_m \widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\; v_r(t_m)}{\sum_m \bigl(\widehat{V}(t_m;\widehat{\psi})\cos\widehat{\psi}\bigr)^2} \Bigr)^2 \tag{10}$$
 
 > **(11)** In Python, the $\arg\min$ of (10) is computed with `numpy.argmin` over the vector of SSE values on the grid: `idx = np.argmin(sse_vector)` then `psi_hat = psi_grid[idx]` (see `src/openflight/launch_angle.py:estimate_launch_angle()`).
 
@@ -115,7 +115,7 @@ $$\widehat{\psi}^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \wideh
 | $\widehat{v_r}(t)$ | **model-predicted** radial velocity |
 | $\widehat{V}(t)$ | model-predicted true ball speed (2D flight model) |
 | $\widehat{\psi}$ | **estimated launch angle** (elevation) |
-| $\widehat{\psi}^{*}$ | retained estimate (argmin SSE) |
+| $(\widehat{\psi})^{*}$ | retained estimate (argmin SSE) |
 | $\widehat{c}$ | scale fitted by least squares |
 | SSE | sum of squared errors |
 | SST | total sum of squares (variance of measurements) |
