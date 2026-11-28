@@ -121,4 +121,71 @@ $$(\widehat{\psi})^{*} = \arg\min_{\widehat{\psi}} \sum_n \Bigl( v_r(t_n) - \wid
 | SST | total sum of squares (variance of measurements) |
 | conf | fit confidence = 1 − SSE/SST |
 
+## Update 2026-11-28 — new format is JSONL
+
+New captures are no longer `.pkl` but **JSONL**: `session_logs/session_2026050*_range.jsonl` — one JSON object per line. I/Q captures are the `"type": "rolling_buffer_capture"` lines:
+
+```json
+{"ts": "2026-05-06T15:25:05.878558", "type": "rolling_buffer_capture", "shot_number": 1,
+ "sample_time": 89.699, "trigger_time": 89.767, "trigger_offset_ms": 68.0,
+ "i_samples": [2128, 2160, ...], "q_samples": [2378, 2369, ...],
+ "ball_speed_mph": 120.97, "club_speed_mph": 81.26, "smash_factor": 1.489, "spin_rpm": 0, ...}
+```
+
+- `i_samples` / `q_samples`: 4096 12-bit ADC counts, same as in the `.pkl` files
+- metadata already computed: speeds, smash, spin, trigger
+
+**Loader** (only part that changes; the official `RollingBufferProcessor.process_capture()` pipeline is unchanged):
+
+```python
+def iter_jsonl_captures(path):
+    with open(path) as f:
+        for line in f:
+            rec = json.loads(line)
+            if rec.get("type") == "rolling_buffer_capture":
+                yield IQCapture(sample_time=rec["sample_time"], trigger_time=rec["trigger_time"],
+                                i_samples=rec["i_samples"], q_samples=rec["q_samples"]), rec
+```
+
+**Test run** (`scripts/analysis/test_launch_angle.py` v0.2.0, supports .pkl + .jsonl) on the 4 sessions: 23 shots processed, end-to-end pipeline OK — but ψ̂ pinned at 2.0° (grid edge), conf ≈ 0 on all real 136 ms captures (window too short, limitation confirmed).
+
+### Results vs TrackMan (`scripts/analysis/compare_launch_angle_trackman.py`, session 2026-05-06, 24 shots)
+
+| shot | ball mph | ψ̂ (°) | conf | launch_v TM (°) | Δ ψ̂−TM (°) |
+|---|---|---|---|---|---|
+| 1 | 121.0 | 2.0 | 0.000 | 15.4 | -13.4 |
+| 2 | 108.9 | 2.0 | 0.000 | 15.5 | -13.5 |
+| 3 | 116.1 | 2.0 | 0.000 | 16.7 | -14.7 |
+| 4 | 116.9 | 2.0 | 0.000 | 18.2 | -16.2 |
+| 5 | 115.4 | 2.0 | 0.000 | 16.6 | -14.6 |
+| 6 | 117.2 | 2.0 | 0.000 | 16.7 | -14.7 |
+| 7 | 119.1 | 2.0 | 0.000 | 17.0 | -15.0 |
+| 8 | 122.3 | 2.0 | 0.000 | 14.2 | -12.2 |
+| 9 | 122.8 | 2.0 | 0.000 | 13.4 | -11.4 |
+| 10 | 149.2 | 2.0 | 0.000 | 8.1 | -6.1 |
+| 11 | 148.7 | 2.0 | 0.000 | 14.4 | -12.4 |
+| 12 | 158.0 | 2.0 | 0.000 | 10.3 | -8.3 |
+| 13 | 65.0 | 2.0 | 0.000 | 9.5 | -7.5 |
+| 14 | 159.7 | 2.0 | 0.000 | 12.3 | -10.3 |
+| 15 | 151.5 | 2.0 | 0.000 | 12.3 | -10.3 |
+| 16 | 155.1 | 2.0 | 0.000 | 7.7 | -5.7 |
+| 17 | 155.1 | 2.0 | 0.000 | 10.2 | -8.2 |
+| 18 | 98.7 | 2.0 | 0.000 | 21.5 | -19.5 |
+| 19 | 102.1 | 2.0 | 0.000 | 21.9 | -19.9 |
+| 20 | 99.5 | 2.0 | 0.000 | 23.2 | -21.2 |
+| 21 | 81.0 | 2.0 | 0.000 | 18.5 | -16.5 |
+| 22 | 98.7 | 2.0 | 0.000 | 19.9 | -17.9 |
+| 23 | 101.9 | 2.0 | 0.000 | 21.9 | -19.9 |
+| 24 | 98.3 | 2.0 | 0.000 | 21.2 | -19.2 |
+
+**MAE vs TrackMan = 13.70° over 24 shots** — ψ̂ stays pinned at 2.0° (grid edge, conf=0): the 136 ms window does not constrain ψ.
+
+#### Honest conclusion
+
+On a 136 ms window, no robust method exists — the only credible measurement of $\widehat{\psi}$ comes from the curvature of $v_r(t)$, and it needs sufficient duration. The lever is increasing the **number of samples** in the rolling buffer (max segment size `S>` + pre-trigger split `S#n`), not just its length in segments. (Spin-based inference is a weak proxy: confounded with loft, ball-dependent — 7i vs 8i, similar spin, different launch angles.)
+
+#### Target buffer size to validate ψ̂
+
+To validate the estimator like on my WAV captures (~350–450 ms post-impact, ±0.75°): need ≥ 350 ms at 30 kHz ≈ 10 500 samples. With 1024-sample segments (`S>`): **S#16 + S> = 16 384 samples ≈ 546 ms** — enough to see the $v_r(t)$ curvature. Hard limits: `S#` ≤ 32, segment ≤ 1024 → max buffer ~32 768 samples (~1.09 s); USB dump at 57600 baud scales with size (~7 s for 41 KB, ~2× more here).
+
 translated and reformulated by Mistral Vibe Code

@@ -4,6 +4,13 @@ Fallback for when no K-LD7 vertical radar is present: the post-impact decay
 shape of v_r(t) = V(t) * cos(psi) carries the signature of psi. A 2D ballistic
 model (same aero coefficients as ballistics.py) is integrated for each
 candidate psi and least-squares fitted against the measured v_r(t).
+
+Version history:
+  name: launch_angle.py (module openflight.launch_angle)
+  v0.1.0 - 2026-11-23 - initial estimator estimate_launch_angle(): psi grid fit
+             on post-impact v_r(t) via ballistics aero model; validated on
+             synthetic data (8/15/25 deg exact, conf=1.0); supports .pkl and
+             JSONL session captures (rolling_buffer_capture records).
 """
 
 import math
