@@ -108,6 +108,7 @@ nav = [
     "development/spin-replay.md",
     "development/camera-yolo.md",
     "development/color-palette.md",
+    "launch-angle-fit-notes.md",
   ] },
 
   { "Legacy (K-LD7)" = [
